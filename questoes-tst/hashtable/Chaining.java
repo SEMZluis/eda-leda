@@ -1,6 +1,40 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+
+public class Chaining {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        TabelaHash tabela = new TabelaHash(Integer.parseInt(sc.nextLine()));
+        String[] entrada;
+
+        do {
+
+            entrada = sc.nextLine().split(" ");
+
+            switch (entrada[0]) {
+                case "keys":
+                    System.out.println(tabela.keys());                    
+                    break;
+                case "values":
+                    System.out.println(tabela.values());
+                    break;
+                case "put":
+                    tabela.put(Integer.parseInt(entrada[1]), entrada[2]);
+                    System.out.println(tabela.toString());
+                    break;
+                case "remove":
+                    tabela.remove(Integer.parseInt(entrada[1]));
+                    System.out.println(tabela.toString());
+                    break;
+                default:
+                    break;
+            }
+
+        } while (!entrada[0].equals("end"));
+    }
+}
 
 class Par {
     private int chave;
@@ -28,7 +62,6 @@ class TabelaHash {
     private List<Par>[] tabela;
     private int size;
     
-    @SuppressWarnings("unchecked")
     public TabelaHash(int tamanho) {
         this.tabela = new ArrayList[tamanho];
     }
@@ -37,25 +70,31 @@ class TabelaHash {
         return chave % this.tabela.length;
     }
 
-    @SuppressWarnings("unchecked")
-    public String keys() {
-        if (this.size == 0) return "[]";
+    private boolean isEmpty() {
+        return this.size == 0;
+    }
 
-        String keys = "[";
-        
+    public String keys() {
+        if (isEmpty()) return "[]";
+
+        int[] keys = new int[this.size];
+        int c = 0;
+
         for (int i = 0; i < this.tabela.length; i++) {
             ArrayList<Par> listaDePares = (ArrayList) this.tabela[i];
             if (listaDePares != null) {
                 for (int j = 0; j < listaDePares.size(); j++) {
-                    keys += listaDePares.get(j).getKey()+", ";
+                    keys[c] = listaDePares.get(j).getKey();
+                    c++;
                 }
             }
         }
 
-        return keys.substring(0, keys.length()-2) + "]";
+        Arrays.sort(keys);
+
+        return Arrays.toString(keys);
     }
 
-    @SuppressWarnings("unchecked")
     public void put(int chave, String valor) {
         Par nPar = new Par(chave, valor);
 
@@ -76,21 +115,17 @@ class TabelaHash {
 
         pares.add(nPar);
         this.tabela[hash] = pares;
-        size++;
+        this.size++;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
     public String toString() {
-        if (this.size == 0) return "[]";
-
-        String tabela = "[";
+        String tabelaString = "[";
         
         for (int i = 0; i < this.tabela.length; i++) {
             ArrayList<Par> listaDePares = (ArrayList) this.tabela[i];
             String lista = "";
 
-            if (listaDePares == null) {
+            if (listaDePares == null || listaDePares.size() == 0) {
                 lista = "[]";
             } else {
                 lista = "[";
@@ -109,34 +144,48 @@ class TabelaHash {
                 lista = lista.substring(0, lista.length()-2) + "]";
             }
 
-            tabela += lista+", ";
+            tabelaString += lista+", ";
         }
 
-        return tabela.substring(0, tabela.length()-2);
+        return tabelaString.substring(0, tabelaString.length()-2) + "]";
     }
-}
 
-public class Chaining {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        TabelaHash tabela = new TabelaHash(Integer.parseInt(sc.nextLine()));
-        String[] entrada;
+    public String values() {
+        if (isEmpty()) return "[]";
 
-        do {
+        String[] values = new String[this.size];
+        int c = 0;
 
-            entrada = sc.nextLine().split(" ");
+        for (int i = 0; i < this.tabela.length; i++) {
+            ArrayList<Par> lista = (ArrayList) this.tabela[i];
 
-            switch (entrada[0]) {
-                case "keys":
-                    System.out.println(tabela.keys());                    
-                    break;
-                case "put":
-                    tabela.put(Integer.parseInt(entrada[1]), entrada[2]);
-                    System.out.println(tabela.toString());
-                default:
-                    break;
+            if (lista != null) {
+                for (int j = 0; j < lista.size(); j++) {
+                    values[c] = lista.get(j).getValue();
+                    c++;
+                }
             }
+        }
 
-        } while (!entrada[0].equals("end"));
+        Arrays.sort(values);
+
+        return Arrays.toString(values);
+    }
+
+    public void remove(int key) {   
+        if (this.size == 0) return;
+
+        int hash = hash(key);
+
+        ArrayList<Par> lista = (ArrayList) this.tabela[hash];
+        if (lista != null && lista.size() > 0) {
+            for (int i = 0; i < lista.size(); i++) {
+                if (lista.get(i).getKey() == key) {
+                    lista.remove(i);
+                    this.size--;
+                    break;
+                }
+            }
+        }
     }
 }
